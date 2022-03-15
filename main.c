@@ -70,6 +70,14 @@ int main(void) {
 
     printf("time to go!\n");
 
+    result = ptrace(PTRACE_GETREGSET, child_pid, 0, &iregs);
+    if (result == -1) {
+        printf("failed getregset %li!\n", result);
+        return result;
+    } else {
+        printf("getregset success (size %zu, ptr_size %zu)!\n", iregs_size, ptr_size);
+    }
+
     result = ptrace(PTRACE_GETREGS, child_pid, 0, &iregs);
     if (result == -1) {
         printf("failed getregs %li!\n", result);
