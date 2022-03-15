@@ -7,7 +7,8 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 #include <sys/types.h>
-
+#include <sys/uio.h>
+#include <linux/elf.h>
 
 typedef struct user_regs_struct iregs_struct;
 
@@ -18,6 +19,8 @@ typedef struct user_fpregs_struct fregs_struct;
 #endif
 
 int main(void) {
+    struct iovec io;
+
     // pid_t my_pid = getpid();
     iregs_struct iregs = {0};
     fregs_struct fpregs = {0};
@@ -70,14 +73,29 @@ int main(void) {
 
     printf("time to go!\n");
 
-    result = ptrace(PTRACE_GETREGSET, child_pid, 0, &iregs);
+    io.iov_base = &iregs;
+    io.iov_len = sizeof(iregs);
+    result = ptrace(PTRACE_GETREGSET, child_pid, (void*)NT_PRSTATUS, &io);
     if (result == -1) {
         printf("failed getregset %li!\n", result);
         return result;
     } else {
-        printf("getregset success (size %zu, ptr_size %zu)!\n", iregs_size, ptr_size);
+        printf("getregset success (len %zu, size %zu, ptr_size %zu)!\n", io.iov_len, iregs_size, ptr_size);
     }
 
+#ifdef NT_PRFPREG
+    io.iov_base = &fpregs;
+    io.iov_len = sizeof(fpregs);
+    result = ptrace(PTRACE_GETREGSET, child_pid, (void*)NT_PRFPREG, &io);
+    if (result == -1) {
+        printf("failed getregset %li!\n", result);
+        return result;
+    } else {
+        printf("getregset success (len %zu, size %zu, ptr_size %zu)!\n", io.iov_len, fpregs_size, ptr_size);
+    }
+#endif
+
+/*
     result = ptrace(PTRACE_GETREGS, child_pid, 0, &iregs);
     if (result == -1) {
         printf("failed getregs %li!\n", result);
@@ -92,6 +110,7 @@ int main(void) {
     } else {
         printf("getfpregs success (size %zu, ptr_size %zu)!\n", fpregs_size, ptr_size);
     }
+*/
 
     printf("\niregs:\n");
     {
