@@ -5,8 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <asm/ptrace.h>
-#include <linux/ptrace.h>
+#include <sys/ptrace.h>
 #include <linux/types.h>
 #include <linux/uio.h>
 #include <linux/elf.h>
@@ -16,6 +15,8 @@
 // typedef struct user_regs_struct iregs_struct;
 
 #ifdef __ANDROID__
+#include <asm/ptrace.h>
+
 // ARM64
 typedef struct user_pt_regs iregs_struct;           // NT_PRSTATUS
 typedef struct user_fpsimd_state fpregs_struct;     // NT_PRFPREG
