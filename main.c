@@ -1,29 +1,44 @@
-#include <sys/ptrace.h>
-#include <sys/user.h>
+
 #include <stdio.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
-#include <sys/wait.h>
 #include <stdlib.h>
-#include <sys/types.h>
-#include <sys/uio.h>
-#include <linux/elf.h>
 
-typedef struct user_regs_struct iregs_struct;
+#include <asm/ptrace.h>
+#include <linux/ptrace.h>
+#include <linux/types.h>
+#include <linux/uio.h>
+#include <linux/elf.h>
+#include <sys/wait.h>
+#include <sys/user.h>
+
+// typedef struct user_regs_struct iregs_struct;
 
 #ifdef __ANDROID__
-typedef struct user_fpsimd_struct fregs_struct;
-#else
-typedef struct user_fpregs_struct fregs_struct;
-#endif
+// ARM64
+typedef struct user_pt_regs iregs_struct;           // NT_PRSTATUS
+typedef struct user_fpsimd_state fpregs_struct;     // NT_PRFPREG
+# else
+// x64
+typedef struct user_regs_struct iregs_struct;       // NT_PRSTATUS
+// This is actually "fxregs_state" but the layouts match and that one is private
+typedef struct user_fpregs_struct fpregs_struct;    // NT_PRFPREG
+
+// x86
+// typedef struct user_regs_struct32 iregs_struct;  // NT_PRSTATUS
+// typedef user_i387_ia32_struct fpregs_struct;     // NT_PRFPREG
+// typedef struct fxregs_state xfpregs_struct;      // NT_PRXFPREG
+# endif
+
+
 
 int main(void) {
     struct iovec io;
 
     // pid_t my_pid = getpid();
     iregs_struct iregs = {0};
-    fregs_struct fpregs = {0};
+    fpregs_struct fpregs = {0};
 
     long result;
     size_t ptr_size = sizeof(size_t); 
