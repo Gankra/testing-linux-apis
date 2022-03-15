@@ -8,10 +8,19 @@
 #include <stdlib.h>
 #include <sys/types.h>
 
+
+typedef struct user_regs_struct iregs_struct;
+
+#ifdef __ANDROID__
+typedef struct user_fpsimd_struct fregs_struct;
+#else
+typedef struct user_fpregs_struct fregs_struct;
+#endif
+
 int main(void) {
     // pid_t my_pid = getpid();
-    struct user_regs_struct iregs = {0};
-    struct user_fpregs_struct fpregs = {0};
+    iregs_struct iregs = {0};
+    fregs_struct fpregs = {0};
 
     long result;
     size_t ptr_size = sizeof(size_t); 
